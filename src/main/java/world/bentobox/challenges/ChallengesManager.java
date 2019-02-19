@@ -887,9 +887,23 @@ public class ChallengesManager
      */
     public long getChallengeTimes(User user, World world, Challenge challenge)
     {
-        world = Util.getWorld(world);
-        return this.getChallengeTimes(this.getDataUniqueID(user, world), challenge.getUniqueId());
+       return this.getChallengeTimes(user, world, challenge.getUniqueId());
     }
+
+
+	/**
+	 * Checks if a challenge is complete or not
+	 *
+	 * @param user - User that must be checked.
+	 * @param world - World where challenge operates.
+	 * @param challenge - Challenge that must be checked.
+	 * @return - true if completed
+	 */
+	public long getChallengeTimes(User user, World world, String challenge)
+	{
+		world = Util.getWorld(world);
+		return this.getChallengeTimes(this.getDataUniqueID(user, world), challenge);
+	}
 
 
     /**

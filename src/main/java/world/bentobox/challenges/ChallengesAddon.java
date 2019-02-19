@@ -10,12 +10,16 @@ import world.bentobox.bentobox.api.addons.Addon;
 import world.bentobox.bentobox.api.addons.GameModeAddon;
 import world.bentobox.bentobox.api.configuration.Config;
 import world.bentobox.bentobox.hooks.VaultHook;
+import world.bentobox.bentobox.managers.PlaceholdersManager;
 import world.bentobox.challenges.commands.ChallengesCommand;
 import world.bentobox.challenges.commands.ChallengesUserCommand;
 import world.bentobox.challenges.commands.admin.Challenges;
 import world.bentobox.challenges.commands.admin.ChallengesAdminCommand;
 import world.bentobox.challenges.listeners.ResetListener;
 import world.bentobox.challenges.listeners.SaveListener;
+import world.bentobox.challenges.placeholders.PlaceholderCompletedChallengeCount;
+import world.bentobox.challenges.placeholders.PlaceholderCompletedLevelCount;
+import world.bentobox.challenges.placeholders.PlaceholderLastUnlockedLevel;
 import world.bentobox.level.Level;
 
 
@@ -121,6 +125,8 @@ public class ChallengesAddon extends Addon {
 					new Challenges(this, gameModeAddon.getAdminCommand().get());
 					this.hooked = true;
 				}
+
+                this.registerPlaceHolders(gameModeAddon);
 			}
 		});
 
@@ -218,6 +224,31 @@ public class ChallengesAddon extends Addon {
             // Disable
             this.logError("Challenges settings could not load! Addon disabled.");
             this.setState(State.DISABLED);
+        }
+    }
+
+
+    /**
+     * This method register challenges placeholders into given gamemode.
+     * @param addon GameMode addon.
+     */
+    private void registerPlaceHolders(GameModeAddon addon)
+    {
+        PlaceholdersManager manager = this.getPlugin().getPlaceholdersManager();
+
+        if (manager != null)
+        {
+            manager.registerPlaceholder(addon,
+                "challenges-top-level",
+                new PlaceholderLastUnlockedLevel(this, addon));
+
+            manager.registerPlaceholder(addon,
+                "challenges-completed-challenge-count",
+                new PlaceholderCompletedChallengeCount(this, addon));
+
+            manager.registerPlaceholder(addon,
+                "challenges-completed-level-count",
+                new PlaceholderCompletedLevelCount(this, addon));
         }
     }
 
