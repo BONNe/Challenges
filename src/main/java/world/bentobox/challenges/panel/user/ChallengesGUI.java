@@ -2,7 +2,6 @@ package world.bentobox.challenges.panel.user;
 
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import java.util.List;
@@ -15,8 +14,9 @@ import world.bentobox.bentobox.api.user.User;
 import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.ChallengesManager;
 import world.bentobox.challenges.database.object.Challenge;
+import world.bentobox.challenges.database.object.challenges.IslandChallenge;
 import world.bentobox.challenges.panel.CommonGUI;
-import world.bentobox.challenges.tasks.TryToComplete;
+import world.bentobox.challenges.tasks.CompleteTask;
 import world.bentobox.challenges.utils.GuiUtils;
 import world.bentobox.challenges.utils.LevelStatus;
 
@@ -368,13 +368,13 @@ public class ChallengesGUI extends CommonGUI
 						(player, reply) -> {
 							try
 							{
-								if (TryToComplete.complete(this.addon,
-									this.user,
-									challenge,
-									this.world,
-									this.topLabel,
-									this.permissionPrefix,
-									Integer.parseInt(reply)))
+								if (CompleteTask.complete(this.addon,
+														  this.user,
+														  challenge,
+														  this.world,
+														  this.topLabel,
+														  this.permissionPrefix,
+														  Integer.parseInt(reply)))
 								{
 									panel.getInventory().setItem(slot, this.getChallengeButton(challenge).getItem());
 								}
@@ -389,12 +389,12 @@ public class ChallengesGUI extends CommonGUI
 				}
 				else
 				{
-					if (TryToComplete.complete(this.addon,
-						this.user,
-						challenge,
-						this.world,
-						this.topLabel,
-						this.permissionPrefix))
+					if (CompleteTask.complete(this.addon,
+											  this.user,
+											  challenge,
+											  this.world,
+											  this.topLabel,
+											  this.permissionPrefix))
 					{
 						panel.getInventory().setItem(slot, this.getChallengeButton(challenge).getItem());
 					}

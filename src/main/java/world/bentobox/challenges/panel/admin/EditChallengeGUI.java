@@ -15,6 +15,9 @@ import world.bentobox.bentobox.api.panels.builders.PanelItemBuilder;
 import world.bentobox.bentobox.api.user.User;
 import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.database.object.Challenge;
+import world.bentobox.challenges.database.object.challenges.InventoryChallenge;
+import world.bentobox.challenges.database.object.challenges.IslandChallenge;
+import world.bentobox.challenges.database.object.challenges.SimpleChallenge;
 import world.bentobox.challenges.panel.CommonGUI;
 import world.bentobox.challenges.panel.util.ItemSwitchGUI;
 import world.bentobox.challenges.panel.util.NumberGUI;
@@ -105,7 +108,7 @@ public class EditChallengeGUI extends CommonGUI
 				case ISLAND:
 					this.buildIslandRequirementsPanel(panelBuilder);
 					break;
-				case OTHER:
+				case SIMPLE:
 					this.buildOtherRequirementsPanel(panelBuilder);
 					break;
 			}
@@ -132,7 +135,7 @@ public class EditChallengeGUI extends CommonGUI
 	private void buildMainPropertiesPanel(PanelBuilder panelBuilder)
 	{
 		panelBuilder.item(10, this.createButton(Button.NAME));
-		panelBuilder.item(13, this.createButton(Button.TYPE));
+//		panelBuilder.item(13, this.createButton(Button.TYPE));
 		panelBuilder.item(16, this.createButton(Button.DEPLOYED));
 
 		panelBuilder.item(19, this.createButton(Button.ICON));
@@ -321,12 +324,15 @@ public class EditChallengeGUI extends CommonGUI
 				List<String> values = new ArrayList<>(5);
 				values.add(this.user.getTranslation("challenges.gui.descriptions.admin.type"));
 
-				values.add((this.challenge.getChallengeType().equals(Challenge.ChallengeType.ISLAND) ? "&2" : "&c") +
-					this.user.getTranslation("challenges.gui.descriptions.type.island"));
-				values.add((this.challenge.getChallengeType().equals(Challenge.ChallengeType.INVENTORY) ? "&2" : "&c") +
-					this.user.getTranslation("challenges.gui.descriptions.type.inventory"));
-				values.add((this.challenge.getChallengeType().equals(Challenge.ChallengeType.OTHER) ? "&2" : "&c") +
-					this.user.getTranslation("challenges.gui.descriptions.type.other"));
+				values.add((this.challenge.getChallengeType().equals(
+						Challenge.ChallengeType.ISLAND) ? "&2" : "&c") +
+						   this.user.getTranslation("challenges.gui.descriptions.type.island"));
+				values.add((this.challenge.getChallengeType().equals(
+						Challenge.ChallengeType.INVENTORY) ? "&2" : "&c") +
+						   this.user.getTranslation("challenges.gui.descriptions.type.inventory"));
+				values.add((this.challenge.getChallengeType().equals(
+						Challenge.ChallengeType.SIMPLE) ? "&2" : "&c") +
+						   this.user.getTranslation("challenges.gui.descriptions.type.other"));
 
 				values.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]", this.challenge.getChallengeType().name()));
@@ -337,11 +343,13 @@ public class EditChallengeGUI extends CommonGUI
 				{
 					icon = new ItemStack(Material.GRASS_BLOCK);
 				}
-				else if (this.challenge.getChallengeType().equals(Challenge.ChallengeType.INVENTORY))
+				else if (this.challenge.getChallengeType().equals(
+						Challenge.ChallengeType.INVENTORY))
 				{
 					icon = new ItemStack(Material.CHEST);
 				}
-				else if (this.challenge.getChallengeType().equals(Challenge.ChallengeType.OTHER))
+				else if (this.challenge.getChallengeType().equals(
+						Challenge.ChallengeType.SIMPLE))
 				{
 					icon = new ItemStack(Material.EXPERIENCE_BOTTLE);
 				}
@@ -554,10 +562,11 @@ public class EditChallengeGUI extends CommonGUI
 			{
 				name = this.user.getTranslation("challenges.gui.buttons.admin.required-entities");
 
-				description = new ArrayList<>(this.challenge.getRequiredEntities().size() + 1);
+				description =
+						new ArrayList<>(((IslandChallenge)this.challenge).getRequiredEntities().size() + 1);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-entities"));
 
-				for (Map.Entry<EntityType, Integer> entry : this.challenge.getRequiredEntities().entrySet())
+				for (Map.Entry<EntityType, Integer> entry : ((IslandChallenge)this.challenge).getRequiredEntities().entrySet())
 				{
 					description.add(this.user.getTranslation("challenges.gui.descriptions.entity",
 						"[entity]", entry.getKey().name(),
@@ -569,7 +578,7 @@ public class EditChallengeGUI extends CommonGUI
 					new ManageEntitiesGUI(this.addon,
 						this.world,
 						this.user,
-						this.challenge.getRequiredEntities(),
+										  ((IslandChallenge)this.challenge).getRequiredEntities(),
 						this.topLabel,
 						this.permissionPrefix,
 						this).build();
@@ -586,28 +595,28 @@ public class EditChallengeGUI extends CommonGUI
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.remove-entities"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]",
-					this.challenge.isRemoveEntities() ?
+														 ((IslandChallenge)this.challenge).isRemoveEntities() ?
 						this.user.getTranslation("challenges.gui.descriptions.enabled") :
 						this.user.getTranslation("challenges.gui.descriptions.disabled")));
 
 				icon = new ItemStack(Material.LEVER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					this.challenge.setRemoveEntities(!this.challenge.isRemoveEntities());
+					((IslandChallenge)this.challenge).setRemoveEntities(!((IslandChallenge)this.challenge).isRemoveEntities());
 
 					this.build();
 					return true;
 				};
-				glow = this.challenge.isRemoveEntities();
+				glow = ((IslandChallenge)this.challenge).isRemoveEntities();
 				break;
 			}
 			case REQUIRED_BLOCKS:
 			{
 				name = this.user.getTranslation("challenges.gui.buttons.admin.required-blocks");
 
-				description = new ArrayList<>(this.challenge.getRequiredBlocks().size() + 1);
+				description = new ArrayList<>(((IslandChallenge)this.challenge).getRequiredBlocks().size() + 1);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-blocks"));
 
-				for (Map.Entry<Material, Integer> entry : this.challenge.getRequiredBlocks().entrySet())
+				for (Map.Entry<Material, Integer> entry : ((IslandChallenge)this.challenge).getRequiredBlocks().entrySet())
 				{
 					description.add(this.user.getTranslation("challenges.gui.descriptions.block",
 						"[block]", entry.getKey().name(),
@@ -619,7 +628,7 @@ public class EditChallengeGUI extends CommonGUI
 					new ManageBlocksGUI(this.addon,
 						this.world,
 						this.user,
-						this.challenge.getRequiredBlocks(),
+										((IslandChallenge)this.challenge).getRequiredBlocks(),
 						this.topLabel,
 						this.permissionPrefix,
 						this).build();
@@ -636,18 +645,18 @@ public class EditChallengeGUI extends CommonGUI
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.remove-blocks"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]",
-					this.challenge.isRemoveBlocks() ?
+														 ((IslandChallenge)this.challenge).isRemoveBlocks() ?
 						this.user.getTranslation("challenges.gui.descriptions.enabled") :
 						this.user.getTranslation("challenges.gui.descriptions.disabled")));
 
 				icon = new ItemStack(Material.LEVER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					this.challenge.setRemoveBlocks(!this.challenge.isRemoveBlocks());
+					((IslandChallenge)this.challenge).setRemoveBlocks(!((IslandChallenge)this.challenge).isRemoveBlocks());
 
 					this.build();
 					return true;
 				};
-				glow = this.challenge.isRemoveBlocks();
+				glow = ((IslandChallenge)this.challenge).isRemoveBlocks();
 				break;
 			}
 			case SEARCH_RADIUS:
@@ -656,7 +665,7 @@ public class EditChallengeGUI extends CommonGUI
 				description = new ArrayList<>(2);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.search-radius"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
-					"[value]", Integer.toString(this.challenge.getSearchRadius())));
+					"[value]", Integer.toString(((IslandChallenge)this.challenge).getSearchRadius())));
 
 				icon = new ItemStack(Material.COBBLESTONE_WALL);
 
@@ -666,10 +675,10 @@ public class EditChallengeGUI extends CommonGUI
 						gameModeAddon.getWorldSettings().getIslandDistance()).orElse(100);
 
 				clickHandler = (panel, user, clickType, slot) -> {
-					new NumberGUI(this.user, this.challenge.getSearchRadius(), 0, maxSearchDistance, lineLength, (status, value) -> {
+					new NumberGUI(this.user, ((IslandChallenge)this.challenge).getSearchRadius(), 0, maxSearchDistance, lineLength, (status, value) -> {
 						if (status)
 						{
-							this.challenge.setSearchRadius(value);
+							((IslandChallenge)this.challenge).setSearchRadius(value);
 						}
 
 						this.build();
@@ -713,18 +722,18 @@ public class EditChallengeGUI extends CommonGUI
 			{
 				name = this.user.getTranslation("challenges.gui.buttons.admin.required-items");
 
-				description = new ArrayList<>(this.challenge.getRequiredItems().size() + 1);
+				description = new ArrayList<>(((InventoryChallenge)this.challenge).getRequiredItems().size() + 1);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-items"));
 
-				Utils.groupEqualItems(this.challenge.getRequiredItems()).forEach(itemStack ->
+				Utils.groupEqualItems(((InventoryChallenge)this.challenge).getRequiredItems()).forEach(itemStack ->
 					description.addAll(this.generateItemStackDescription(itemStack)));
 
 				icon = new ItemStack(Material.CHEST);
 				clickHandler = (panel, user, clickType, slot) -> {
-					new ItemSwitchGUI(this.user, this.challenge.getRequiredItems(), lineLength, (status, value) -> {
+					new ItemSwitchGUI(this.user, ((InventoryChallenge)this.challenge).getRequiredItems(), lineLength, (status, value) -> {
 						if (status)
 						{
-							this.challenge.setRequiredItems(value);
+							((InventoryChallenge)this.challenge).setRequiredItems(value);
 						}
 
 						this.build();
@@ -742,18 +751,18 @@ public class EditChallengeGUI extends CommonGUI
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.remove-items"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]",
-					this.challenge.isTakeItems() ?
+														 ((InventoryChallenge)this.challenge).isTakeItems() ?
 						this.user.getTranslation("challenges.gui.descriptions.enabled") :
 						this.user.getTranslation("challenges.gui.descriptions.disabled")));
 
 				icon = new ItemStack(Material.LEVER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					this.challenge.setTakeItems(!this.challenge.isTakeItems());
+					((InventoryChallenge)this.challenge).setTakeItems(!((InventoryChallenge)this.challenge).isTakeItems());
 
 					this.build();
 					return true;
 				};
-				glow = this.challenge.isTakeItems();
+				glow = ((InventoryChallenge)this.challenge).isTakeItems();
 				break;
 			}
 			case REQUIRED_EXPERIENCE:
@@ -762,14 +771,14 @@ public class EditChallengeGUI extends CommonGUI
 				description = new ArrayList<>(2);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-experience"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
-					"[value]", Integer.toString(this.challenge.getRequiredExperience())));
+					"[value]", Integer.toString(((SimpleChallenge)this.challenge).getRequiredExperience())));
 
 				icon = new ItemStack(Material.EXPERIENCE_BOTTLE);
 				clickHandler = (panel, user, clickType, slot) -> {
-					new NumberGUI(this.user, this.challenge.getRequiredExperience(), 0, lineLength, (status, value) -> {
+					new NumberGUI(this.user, ((SimpleChallenge)this.challenge).getRequiredExperience(), 0, lineLength, (status, value) -> {
 						if (status)
 						{
-							this.challenge.setRequiredExperience(value);
+							((SimpleChallenge)this.challenge).setRequiredExperience(value);
 						}
 
 						this.build();
@@ -786,18 +795,18 @@ public class EditChallengeGUI extends CommonGUI
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.remove-experience"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]",
-					this.challenge.isTakeExperience() ?
+														 ((SimpleChallenge)this.challenge).isTakeExperience() ?
 						this.user.getTranslation("challenges.gui.descriptions.enabled") :
 						this.user.getTranslation("challenges.gui.descriptions.disabled")));
 
 				icon = new ItemStack(Material.LEVER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					this.challenge.setTakeExperience(!this.challenge.isTakeExperience());
+					((SimpleChallenge)this.challenge).setTakeExperience(!((SimpleChallenge)this.challenge).isTakeExperience());
 
 					this.build();
 					return true;
 				};
-				glow = this.challenge.isTakeExperience();
+				glow = ((SimpleChallenge)this.challenge).isTakeExperience();
 				break;
 			}
 			case REQUIRED_LEVEL:
@@ -806,14 +815,14 @@ public class EditChallengeGUI extends CommonGUI
 				description = new ArrayList<>(2);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-level"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
-					"[value]", Long.toString(this.challenge.getRequiredIslandLevel())));
+					"[value]", Long.toString(((SimpleChallenge)this.challenge).getRequiredIslandLevel())));
 
 				icon = new ItemStack(this.addon.isLevelProvided() ? Material.BEACON : Material.BARRIER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					new NumberGUI(this.user, (int) this.challenge.getRequiredIslandLevel(), lineLength, (status, value) -> {
+					new NumberGUI(this.user, (int) ((SimpleChallenge)this.challenge).getRequiredIslandLevel(), lineLength, (status, value) -> {
 						if (status)
 						{
-							this.challenge.setRequiredIslandLevel(value);
+							((SimpleChallenge)this.challenge).setRequiredIslandLevel(value);
 						}
 
 						this.build();
@@ -831,14 +840,14 @@ public class EditChallengeGUI extends CommonGUI
 				description = new ArrayList<>(2);
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.required-money"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
-					"[value]", Long.toString(this.challenge.getRequiredMoney())));
+					"[value]", Long.toString(((SimpleChallenge)this.challenge).getRequiredMoney())));
 
 				icon = new ItemStack(this.addon.isEconomyProvided() ? Material.GOLD_INGOT : Material.BARRIER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					new NumberGUI(this.user, this.challenge.getRequiredMoney(), 0, lineLength, (status, value) -> {
+					new NumberGUI(this.user, ((SimpleChallenge)this.challenge).getRequiredMoney(), 0, lineLength, (status, value) -> {
 						if (status)
 						{
-							this.challenge.setRequiredMoney(value);
+							((SimpleChallenge)this.challenge).setRequiredMoney(value);
 						}
 
 						this.build();
@@ -856,19 +865,19 @@ public class EditChallengeGUI extends CommonGUI
 				description.add(this.user.getTranslation("challenges.gui.descriptions.admin.remove-money"));
 				description.add(this.user.getTranslation("challenges.gui.descriptions.current-value",
 					"[value]",
-					this.challenge.isTakeMoney() ?
+														 ((SimpleChallenge)this.challenge).isTakeMoney() ?
 						this.user.getTranslation("challenges.gui.descriptions.enabled") :
 						this.user.getTranslation("challenges.gui.descriptions.disabled")));
 
 				icon = new ItemStack(this.addon.isEconomyProvided() ? Material.LEVER : Material.BARRIER);
 				clickHandler = (panel, user, clickType, slot) -> {
-					this.challenge.setTakeMoney(!this.challenge.isTakeMoney());
+					((SimpleChallenge)this.challenge).setTakeMoney(!((SimpleChallenge)this.challenge).isTakeMoney());
 
 					this.build();
 					return true;
 				};
 
-				glow = this.challenge.isTakeMoney();
+				glow = ((SimpleChallenge)this.challenge).isTakeMoney();
 				break;
 			}
 

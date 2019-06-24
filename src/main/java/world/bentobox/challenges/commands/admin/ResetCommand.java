@@ -11,7 +11,6 @@ import world.bentobox.bentobox.api.user.User;
 import world.bentobox.bentobox.util.Util;
 import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.database.object.Challenge;
-import world.bentobox.challenges.tasks.TryToComplete;
 
 
 /**

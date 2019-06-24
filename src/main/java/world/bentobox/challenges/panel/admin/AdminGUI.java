@@ -14,6 +14,8 @@ import world.bentobox.bentobox.util.Util;
 import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.panel.CommonGUI;
 import world.bentobox.challenges.panel.util.ConfirmationGUI;
+import world.bentobox.challenges.panel.util.SelectChallengeTypeGUI;
+import world.bentobox.challenges.panel.util.SelectEnvironmentGUI;
 import world.bentobox.challenges.utils.GuiUtils;
 
 
@@ -212,13 +214,22 @@ public class AdminGUI extends CommonGUI
 
 							if (!this.addon.getChallengesManager().containsChallenge(newName))
 							{
-								new EditChallengeGUI(this.addon,
-									this.world,
-									this.user,
-									this.addon.getChallengesManager().createChallenge(newName),
-									this.topLabel,
-									this.permissionPrefix,
-									this).build();
+								new SelectChallengeTypeGUI(this.user, (status, value) -> {
+									if (status)
+									{
+										new EditChallengeGUI(this.addon,
+											this.world,
+											this.user,
+											this.addon.getChallengesManager().createChallenge(newName, value),
+											this.topLabel,
+											this.permissionPrefix,
+											this).build();
+									}
+									else
+									{
+										this.build();
+									}
+								});
 							}
 							else
 							{

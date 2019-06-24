@@ -4,7 +4,6 @@ package world.bentobox.challenges.panel.admin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import java.util.*;
 import java.util.stream.Collectors;

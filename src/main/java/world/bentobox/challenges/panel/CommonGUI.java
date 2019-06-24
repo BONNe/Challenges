@@ -28,6 +28,9 @@ import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.ChallengesManager;
 import world.bentobox.challenges.database.object.Challenge;
 import world.bentobox.challenges.database.object.ChallengeLevel;
+import world.bentobox.challenges.database.object.challenges.InventoryChallenge;
+import world.bentobox.challenges.database.object.challenges.IslandChallenge;
+import world.bentobox.challenges.database.object.challenges.SimpleChallenge;
 import world.bentobox.challenges.utils.LevelStatus;
 import world.bentobox.challenges.utils.Utils;
 
@@ -373,23 +376,24 @@ public abstract class CommonGUI
 					{
 						if (challenge.getChallengeType().equals(Challenge.ChallengeType.INVENTORY))
 						{
-							if (challenge.isTakeItems())
+							if (((InventoryChallenge) challenge).isTakeItems())
 							{
 								result.add(this.user.getTranslation(
 									"challenges.gui.challenge-description.warning-items-take"));
 							}
 						}
-						else if (challenge.getChallengeType().equals(Challenge.ChallengeType.ISLAND))
+						else if (challenge.getChallengeType().equals(
+								Challenge.ChallengeType.ISLAND))
 						{
 							result.add(this.user.getTranslation("challenges.gui.challenge-description.objects-close-by"));
 
-							if (challenge.isRemoveEntities() && !challenge.getRequiredEntities().isEmpty())
+							if (((IslandChallenge) challenge).isRemoveEntities() && !((IslandChallenge) challenge).getRequiredEntities().isEmpty())
 							{
 								result.add(this.user.getTranslation(
 									"challenges.gui.challenge-description.warning-entities-kill"));
 							}
 
-							if (challenge.isRemoveBlocks() && !challenge.getRequiredBlocks().isEmpty())
+							if (((IslandChallenge) challenge).isRemoveBlocks() && !((IslandChallenge) challenge).getRequiredBlocks().isEmpty())
 							{
 								result.add(this.user.getTranslation(
 									"challenges.gui.challenge-description.warning-blocks-remove"));
@@ -427,7 +431,7 @@ public abstract class CommonGUI
 				}
 				case 'q':
 				{
-					if (!isCompletedAll && challenge.getChallengeType() == Challenge.ChallengeType.OTHER)
+					if (!isCompletedAll && challenge.getChallengeType() == Challenge.ChallengeType.SIMPLE)
 					{
 						result.addAll(this.getChallengeRequirements(challenge));
 					}
@@ -449,7 +453,7 @@ public abstract class CommonGUI
 				{
 					if (!isCompletedAll)
 					{
-						if (prevChar == 'q' && challenge.getChallengeType() != Challenge.ChallengeType.OTHER)
+						if (prevChar == 'q' && challenge.getChallengeType() != Challenge.ChallengeType.SIMPLE)
 						{
 							result.addAll(this.getChallengeRequiredItems(challenge));
 						}
@@ -584,24 +588,24 @@ public abstract class CommonGUI
 		List<String> result = new ArrayList<>();
 
 		// Add message about required exp
-		if (challenge.getRequiredExperience() > 0)
+		if (((SimpleChallenge) challenge).getRequiredExperience() > 0)
 		{
 			result.add(this.user.getTranslation("challenges.gui.challenge-description.required-experience",
-				"[value]", Integer.toString(challenge.getRequiredExperience())));
+				"[value]", Integer.toString(((SimpleChallenge) challenge).getRequiredExperience())));
 		}
 
 		// Add message about required money
-		if (this.addon.isEconomyProvided() && challenge.getRequiredMoney() > 0)
+		if (this.addon.isEconomyProvided() && ((SimpleChallenge) challenge).getRequiredMoney() > 0)
 		{
 			result.add(this.user.getTranslation("challenges.gui.challenge-description.required-money",
-				"[value]", Integer.toString(challenge.getRequiredMoney())));
+				"[value]", Integer.toString(((SimpleChallenge) challenge).getRequiredMoney())));
 		}
 
 		// Add message about required island level
-		if (this.addon.isLevelProvided() && challenge.getRequiredIslandLevel() > 0)
+		if (this.addon.isLevelProvided() && ((SimpleChallenge) challenge).getRequiredIslandLevel() > 0)
 		{
 			result.add(this.user.getTranslation("challenges.gui.challenge-description.required-island-level",
-				"[value]", Long.toString(challenge.getRequiredIslandLevel())));
+				"[value]", Long.toString(((SimpleChallenge) challenge).getRequiredIslandLevel())));
 		}
 
 		return result;
@@ -619,23 +623,23 @@ public abstract class CommonGUI
 
 		// Add message about required items
 		if (challenge.getChallengeType().equals(Challenge.ChallengeType.INVENTORY) &&
-			!challenge.getRequiredItems().isEmpty())
+			!((InventoryChallenge) challenge).getRequiredItems().isEmpty())
 		{
 			result.add(this.user.getTranslation("challenges.gui.challenge-description.required-items"));
 
-			Utils.groupEqualItems(challenge.getRequiredItems()).forEach(itemStack ->
+			Utils.groupEqualItems(((InventoryChallenge) challenge).getRequiredItems()).forEach(itemStack ->
 				result.addAll(this.generateItemStackDescription(itemStack)));
 		}
 
 		if (challenge.getChallengeType().equals(Challenge.ChallengeType.ISLAND) &&
-			(!challenge.getRequiredBlocks().isEmpty() || !challenge.getRequiredEntities().isEmpty()))
+			(!((IslandChallenge) challenge).getRequiredBlocks().isEmpty() || !((IslandChallenge) challenge).getRequiredEntities().isEmpty()))
 		{
 			// Add required blocks
-			if (!challenge.getRequiredBlocks().isEmpty())
+			if (!((IslandChallenge) challenge).getRequiredBlocks().isEmpty())
 			{
 				result.add(this.user.getTranslation("challenges.gui.challenge-description.required-blocks"));
 
-				for (Map.Entry<Material, Integer> entry : challenge.getRequiredBlocks().entrySet())
+				for (Map.Entry<Material, Integer> entry : ((IslandChallenge) challenge).getRequiredBlocks().entrySet())
 				{
 					result.add(this.user.getTranslation("challenges.gui.descriptions.block",
 						"[block]", entry.getKey().name(),
@@ -644,11 +648,11 @@ public abstract class CommonGUI
 			}
 
 			// Add required entities
-			if (!challenge.getRequiredEntities().isEmpty())
+			if (!((IslandChallenge) challenge).getRequiredEntities().isEmpty())
 			{
 				result.add(this.user.getTranslation("challenges.gui.challenge-description.required-entities"));
 
-				for (Map.Entry<EntityType, Integer> entry : challenge.getRequiredEntities().entrySet())
+				for (Map.Entry<EntityType, Integer> entry : ((IslandChallenge) challenge).getRequiredEntities().entrySet())
 				{
 					result.add(this.user.getTranslation("challenges.gui.descriptions.entity",
 						"[entity]", entry.getKey().name(),

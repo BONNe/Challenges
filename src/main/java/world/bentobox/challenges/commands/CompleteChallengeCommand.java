@@ -10,7 +10,7 @@ import world.bentobox.bentobox.api.user.User;
 import world.bentobox.bentobox.util.Util;
 import world.bentobox.challenges.ChallengesAddon;
 import world.bentobox.challenges.database.object.Challenge;
-import world.bentobox.challenges.tasks.TryToComplete;
+import world.bentobox.challenges.tasks.CompleteTask;
 
 
 /**
@@ -65,13 +65,13 @@ public class CompleteChallengeCommand extends CompositeCommand
 
 			if (challenge != null)
 			{
-				return TryToComplete.complete(this.addon,
-					user,
-					challenge,
-					this.getWorld(),
-					this.getTopLabel(),
-					this.getPermissionPrefix(),
-					count);
+				return CompleteTask.complete(this.addon,
+                                             user,
+                                             challenge,
+                                             this.getWorld(),
+                                             this.getTopLabel(),
+                                             this.getPermissionPrefix(),
+                                             count);
 			}
 			else
 			{

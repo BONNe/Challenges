@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
 import com.google.gson.annotations.Expose;
@@ -20,12 +19,28 @@ import world.bentobox.bentobox.database.objects.DataObject;
  * @author tastybento
  *
  */
-public class Challenge implements DataObject
+public abstract class Challenge implements Cloneable, DataObject
 {
     /**
      * Empty constructor
      */
     public Challenge()
+    {
+    }
+
+    /**
+     * @return the challengeType
+     */
+    public ChallengeType getChallengeType()
+    {
+        return this.challengeType;
+    }
+
+
+    public abstract Challenge copy();
+
+
+    public void setChallengeType(ChallengeType type)
     {
     }
 
@@ -46,9 +61,18 @@ public class Challenge implements DataObject
         ISLAND,
 
         /**
-         * Other type, like required money / experience or island level. This my request
+         * Challenge that requires event to be processed.
+         */
+        EVENT,
+
+        /**
+         * Simple type, like required money / experience or island level. This my request
          * other plugins to be setup before it could work.
          */
+        SIMPLE,
+
+        // Use SIMPLE
+        @Deprecated
         OTHER,
     }
 
@@ -91,11 +115,6 @@ public class Challenge implements DataObject
     private int order = -1;
 
     @ConfigComment("")
-    @ConfigComment("Challenge type can be INVENTORY, OTHER or ISLAND.")
-    @Expose
-    private ChallengeType challengeType = ChallengeType.INVENTORY;
-
-    @ConfigComment("")
     @ConfigComment("List of environments where this challenge will occur: NETHER, NORMAL,")
     @ConfigComment("THE_END. Leave blank for all.")
     @Expose
@@ -111,6 +130,9 @@ public class Challenge implements DataObject
     @Expose
     private String level = "";
 
+    @Expose
+    protected ChallengeType challengeType;
+
     // ---------------------------------------------------------------------
     // Section: Requirement related
     // ---------------------------------------------------------------------
@@ -120,71 +142,6 @@ public class Challenge implements DataObject
     @ConfigComment("The required permissions to see this challenge. String list.")
     @Expose
     private Set<String> requiredPermissions = new HashSet<>();
-
-    @ConfigComment("")
-    @ConfigComment("This is a map of the blocks required in a ISLAND challenge. Material,")
-    @ConfigComment("Integer")
-    @Expose
-    private Map<Material, Integer> requiredBlocks = new EnumMap<>(Material.class);
-
-    @ConfigComment("")
-    @ConfigComment("Remove the required blocks from the island")
-    @Expose
-    private boolean removeBlocks;
-
-    @ConfigComment("")
-    @ConfigComment("Any entities that must be in the area for ISLAND type challenges. ")
-    @ConfigComment("Map EntityType, Number")
-    @Expose
-    private Map<EntityType, Integer> requiredEntities = new EnumMap<>(EntityType.class);
-
-    @ConfigComment("")
-    @ConfigComment("Remove the entities from the island")
-    @Expose
-    private boolean removeEntities;
-
-    @ConfigComment("")
-    @ConfigComment("The items that must be in the inventory to complete the challenge. ")
-    @ConfigComment("ItemStack List.")
-    @Expose
-    private List<ItemStack> requiredItems = new ArrayList<>();
-
-    @ConfigComment("")
-    @ConfigComment("Take the required items from the player")
-    @Expose
-    private boolean takeItems = true;
-
-    @ConfigComment("")
-    @ConfigComment("Required experience for challenge completion.")
-    @Expose
-    private int requiredExperience = 0;
-
-    @ConfigComment("")
-    @ConfigComment("Take the experience from the player")
-    @Expose
-    private boolean takeExperience;
-
-    @ConfigComment("")
-    @ConfigComment("Required money for challenge completion. Economy plugins or addons")
-    @ConfigComment("is required for this option.")
-    @Expose
-    private int requiredMoney = 0;
-
-    @ConfigComment("")
-    @ConfigComment("Take the money from the player")
-    @Expose
-    private boolean takeMoney;
-
-    @ConfigComment("")
-    @ConfigComment("Required island level for challenge completion. Plugin or Addon that")
-    @ConfigComment("calculates island level is required for this option.")
-    @Expose
-    private long requiredIslandLevel;
-
-    @ConfigComment("")
-    @ConfigComment("The number of blocks around the player to search for items on an island")
-    @Expose
-    private int searchRadius = 10;
 
 
     // ---------------------------------------------------------------------
@@ -325,15 +282,6 @@ public class Challenge implements DataObject
 
 
     /**
-     * @return the challengeType
-     */
-    public ChallengeType getChallengeType()
-    {
-        return challengeType;
-    }
-
-
-    /**
      * @return the environment
      */
     public Set<World.Environment> getEnvironment()
@@ -366,114 +314,6 @@ public class Challenge implements DataObject
     public Set<String> getRequiredPermissions()
     {
         return requiredPermissions;
-    }
-
-
-    /**
-     * @return the requiredBlocks
-     */
-    public Map<Material, Integer> getRequiredBlocks()
-    {
-        return requiredBlocks;
-    }
-
-
-    /**
-     * @return the removeBlocks
-     */
-    public boolean isRemoveBlocks()
-    {
-        return removeBlocks;
-    }
-
-
-    /**
-     * @return the requiredEntities
-     */
-    public Map<EntityType, Integer> getRequiredEntities()
-    {
-        return requiredEntities;
-    }
-
-
-    /**
-     * @return the removeEntities
-     */
-    public boolean isRemoveEntities()
-    {
-        return removeEntities;
-    }
-
-
-    /**
-     * @return the requiredItems
-     */
-    public List<ItemStack> getRequiredItems()
-    {
-        return requiredItems;
-    }
-
-
-    /**
-     * @return the takeItems
-     */
-    public boolean isTakeItems()
-    {
-        return takeItems;
-    }
-
-
-    /**
-     * @return the requiredExperience
-     */
-    public int getRequiredExperience()
-    {
-        return requiredExperience;
-    }
-
-
-    /**
-     * @return the takeExperience
-     */
-    public boolean isTakeExperience()
-    {
-        return takeExperience;
-    }
-
-
-    /**
-     * @return the requiredMoney
-     */
-    public int getRequiredMoney()
-    {
-        return requiredMoney;
-    }
-
-
-    /**
-     * @return the takeMoney
-     */
-    public boolean isTakeMoney()
-    {
-        return takeMoney;
-    }
-
-
-    /**
-     * @return the requiredIslandLevel
-     */
-    public long getRequiredIslandLevel()
-    {
-        return requiredIslandLevel;
-    }
-
-
-    /**
-     * @return the searchRadius
-     */
-    public int getSearchRadius()
-    {
-        return searchRadius;
     }
 
 
@@ -656,17 +496,6 @@ public class Challenge implements DataObject
 
 
     /**
-     * This method sets the challengeType value.
-     * @param challengeType the challengeType new value.
-     *
-     */
-    public void setChallengeType(ChallengeType challengeType)
-    {
-        this.challengeType = challengeType;
-    }
-
-
-    /**
      * This method sets the environment value.
      * @param environment the environment new value.
      *
@@ -706,138 +535,6 @@ public class Challenge implements DataObject
     public void setRequiredPermissions(Set<String> requiredPermissions)
     {
         this.requiredPermissions = requiredPermissions;
-    }
-
-
-    /**
-     * This method sets the requiredBlocks value.
-     * @param requiredBlocks the requiredBlocks new value.
-     *
-     */
-    public void setRequiredBlocks(Map<Material, Integer> requiredBlocks)
-    {
-        this.requiredBlocks = requiredBlocks;
-    }
-
-
-    /**
-     * This method sets the removeBlocks value.
-     * @param removeBlocks the removeBlocks new value.
-     *
-     */
-    public void setRemoveBlocks(boolean removeBlocks)
-    {
-        this.removeBlocks = removeBlocks;
-    }
-
-
-    /**
-     * This method sets the requiredEntities value.
-     * @param requiredEntities the requiredEntities new value.
-     *
-     */
-    public void setRequiredEntities(Map<EntityType, Integer> requiredEntities)
-    {
-        this.requiredEntities = requiredEntities;
-    }
-
-
-    /**
-     * This method sets the removeEntities value.
-     * @param removeEntities the removeEntities new value.
-     *
-     */
-    public void setRemoveEntities(boolean removeEntities)
-    {
-        this.removeEntities = removeEntities;
-    }
-
-
-    /**
-     * This method sets the requiredItems value.
-     * @param requiredItems the requiredItems new value.
-     *
-     */
-    public void setRequiredItems(List<ItemStack> requiredItems)
-    {
-        this.requiredItems = requiredItems;
-    }
-
-
-    /**
-     * This method sets the takeItems value.
-     * @param takeItems the takeItems new value.
-     *
-     */
-    public void setTakeItems(boolean takeItems)
-    {
-        this.takeItems = takeItems;
-    }
-
-
-    /**
-     * This method sets the requiredExperience value.
-     * @param requiredExperience the requiredExperience new value.
-     *
-     */
-    public void setRequiredExperience(int requiredExperience)
-    {
-        this.requiredExperience = requiredExperience;
-    }
-
-
-    /**
-     * This method sets the takeExperience value.
-     * @param takeExperience the takeExperience new value.
-     *
-     */
-    public void setTakeExperience(boolean takeExperience)
-    {
-        this.takeExperience = takeExperience;
-    }
-
-
-    /**
-     * This method sets the requiredMoney value.
-     * @param requiredMoney the requiredMoney new value.
-     *
-     */
-    public void setRequiredMoney(int requiredMoney)
-    {
-        this.requiredMoney = requiredMoney;
-    }
-
-
-    /**
-     * This method sets the takeMoney value.
-     * @param takeMoney the takeMoney new value.
-     *
-     */
-    public void setTakeMoney(boolean takeMoney)
-    {
-        this.takeMoney = takeMoney;
-    }
-
-
-    /**
-     * This method sets the requiredIslandLevel value.
-     * @param requiredIslandLevel the requiredIslandLevel new value.
-     *
-     */
-    public void setRequiredIslandLevel(long requiredIslandLevel)
-    {
-        this.requiredIslandLevel = requiredIslandLevel;
-    }
-
-
-    /**
-     * This method sets the searchRadius value.
-     * @param searchRadius the searchRadius new value.
-     *
-     */
-    public void setSearchRadius(int searchRadius)
-    {
-        this.searchRadius = searchRadius;
     }
 
 
@@ -973,11 +670,6 @@ public class Challenge implements DataObject
     }
 
 
-    // ---------------------------------------------------------------------
-    // Section: Other methods
-    // ---------------------------------------------------------------------
-
-
     /**
      * @see java.lang.Object#hashCode()
      * @return int
@@ -1024,59 +716,46 @@ public class Challenge implements DataObject
 
 
     /**
-     * Clone method that returns clone of current challenge.
-     * @return Challenge that is cloned from current object.
+     * This method populates cloned object with Challenge variables.
+     * @param clone Cloned object that must be populated.
      */
-    @Override
-    public Challenge clone()
+    protected void populateClone(Challenge clone)
     {
-        Challenge clone;
+        // Global settings
+        clone.setUniqueId(this.uniqueId);
+        clone.setFriendlyName(this.friendlyName);
+        clone.setDescription(new ArrayList<>(this.description));
+        clone.setIcon(this.icon.clone());
 
-        try
-        {
-            clone = (Challenge) super.clone();
-        }
-        catch (CloneNotSupportedException e)
-        {
-            clone = new Challenge();
+        clone.setOrder(this.order);
+        clone.setDeployed(this.deployed);
+        clone.setEnvironment(new HashSet<>(this.environment));
+        clone.setLevel(this.level);
+        clone.setRemoveWhenCompleted(this.removeWhenCompleted);
 
-            clone.setUniqueId(this.uniqueId);
-            clone.setFriendlyName(this.friendlyName);
-            clone.setDeployed(this.deployed);
-            clone.setDescription(new ArrayList<>(this.description));
-            clone.setIcon(this.icon.clone());
-            clone.setOrder(this.order);
-            clone.setChallengeType(ChallengeType.valueOf(this.challengeType.name()));
-            clone.setEnvironment(new HashSet<>(this.environment));
-            clone.setLevel(this.level);
-            clone.setRemoveWhenCompleted(this.removeWhenCompleted);
-            clone.setRequiredPermissions(new HashSet<>(this.requiredPermissions));
-            clone.setRequiredBlocks(new HashMap<>(this.requiredBlocks));
-            clone.setRemoveBlocks(this.removeBlocks);
-            clone.setRequiredEntities(new HashMap<>(this.requiredEntities));
-            clone.setRemoveEntities(this.removeEntities);
-            clone.setRequiredItems(this.requiredItems.stream().map(ItemStack::clone).collect(Collectors.toCollection(() -> new ArrayList<>(this.requiredItems.size()))));
-            clone.setTakeItems(this.takeItems);
-            clone.setRequiredExperience(this.requiredExperience);
-            clone.setTakeExperience(this.takeExperience);
-            clone.setRequiredMoney(this.requiredMoney);
-            clone.setTakeMoney(this.takeMoney);
-            clone.setRequiredIslandLevel(this.requiredIslandLevel);
-            clone.setSearchRadius(this.searchRadius);
-            clone.setRewardText(this.rewardText);
-            clone.setRewardItems(this.rewardItems.stream().map(ItemStack::clone).collect(Collectors.toCollection(() -> new ArrayList<>(this.rewardItems.size()))));
-            clone.setRewardExperience(this.rewardExperience);
-            clone.setRewardMoney(this.rewardMoney);
-            clone.setRewardCommands(new ArrayList<>(this.rewardCommands));
-            clone.setRepeatable(this.repeatable);
-            clone.setRepeatRewardText(this.repeatRewardText);
-            clone.setMaxTimes(this.maxTimes);
-            clone.setRepeatExperienceReward(this.repeatExperienceReward);
-            clone.setRepeatItemReward(this.repeatItemReward.stream().map(ItemStack::clone).collect(Collectors.toCollection(() -> new ArrayList<>(this.repeatItemReward.size()))));
-            clone.setRepeatMoneyReward(this.repeatMoneyReward);
-            clone.setRepeatRewardCommands(new ArrayList<>(this.repeatRewardCommands));
-        }
+        // Requirements
+        clone.setRequiredPermissions(new HashSet<>(this.requiredPermissions));
 
-        return clone;
+        // Rewards
+        clone.setRewardText(this.rewardText);
+        clone.setRewardItems(this.rewardItems.stream().
+            map(ItemStack::clone).
+            collect(Collectors.toCollection(() -> new ArrayList<>(this.rewardItems.size()))));
+        clone.setRewardExperience(this.rewardExperience);
+        clone.setRewardMoney(this.rewardMoney);
+        clone.setRewardCommands(new ArrayList<>(this.rewardCommands));
+
+        // Repeat
+        clone.setRepeatable(this.repeatable);
+        clone.setMaxTimes(this.maxTimes);
+
+        // Repeat rewards
+        clone.setRepeatRewardText(this.repeatRewardText);
+        clone.setRepeatExperienceReward(this.repeatExperienceReward);
+        clone.setRepeatItemReward(this.repeatItemReward.stream().
+            map(ItemStack::clone).
+            collect(Collectors.toCollection(() -> new ArrayList<>(this.repeatItemReward.size()))));
+        clone.setRepeatMoneyReward(this.repeatMoneyReward);
+        clone.setRepeatRewardCommands(new ArrayList<>(this.repeatRewardCommands));
     }
 }

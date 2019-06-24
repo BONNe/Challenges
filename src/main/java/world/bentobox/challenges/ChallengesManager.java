@@ -15,8 +15,13 @@ import world.bentobox.bentobox.database.Database;
 import world.bentobox.bentobox.database.objects.Island;
 import world.bentobox.bentobox.util.Util;
 import world.bentobox.challenges.database.object.Challenge;
+import world.bentobox.challenges.database.object.Challenge.ChallengeType;
 import world.bentobox.challenges.database.object.ChallengeLevel;
 import world.bentobox.challenges.database.object.ChallengesPlayerData;
+import world.bentobox.challenges.database.object.challenges.EventChallenge;
+import world.bentobox.challenges.database.object.challenges.InventoryChallenge;
+import world.bentobox.challenges.database.object.challenges.IslandChallenge;
+import world.bentobox.challenges.database.object.challenges.SimpleChallenge;
 import world.bentobox.challenges.events.ChallengeCompletedEvent;
 import world.bentobox.challenges.events.ChallengeResetAllEvent;
 import world.bentobox.challenges.events.ChallengeResetEvent;
@@ -37,7 +42,14 @@ public class ChallengesManager
     /**
      * This config object stores structures for challenge objects.
      */
-    private Database<Challenge> challengeDatabase;
+    private Database<SimpleChallenge> simpleChallengeDatabase;
+
+    private Database<InventoryChallenge> inventoryChallengeDatabase;
+
+    private Database<IslandChallenge> islandChallengeDatabase;
+
+    private Database<EventChallenge> eventChallengeDatabase;
+
 
     /**
      * This config object stores structures for challenge level objects.
@@ -101,7 +113,11 @@ public class ChallengesManager
         this.settings = addon.getChallengesSettings();
 
         // Set up the configs
-        this.challengeDatabase = new Database<>(addon, Challenge.class);
+        this.simpleChallengeDatabase = new Database<>(addon, SimpleChallenge.class);
+        this.eventChallengeDatabase = new Database<>(addon, EventChallenge.class);
+        this.inventoryChallengeDatabase = new Database<>(addon, InventoryChallenge.class);
+        this.islandChallengeDatabase = new Database<>(addon, IslandChallenge.class);
+
         this.levelDatabase = new Database<>(addon, ChallengeLevel.class);
         // Players is where all the player history will be stored
         this.playersDatabase = new Database<>(addon, ChallengesPlayerData.class);
@@ -209,7 +225,12 @@ public class ChallengesManager
 
         this.addon.getLogger().info("Loading challenges...");
 
-        this.challengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.simpleChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.eventChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.inventoryChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.islandChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+
+
         this.levelDatabase.loadObjects().forEach(this::loadLevel);
         // It is not necessary to load all players in memory.
 //        this.playersDatabase.loadObjects().forEach(this::loadPlayerData);
@@ -229,11 +250,19 @@ public class ChallengesManager
 
         this.addon.getLogger().info("Reloading challenges...");
 
-        this.challengeDatabase = new Database<>(addon, Challenge.class);
+        this.simpleChallengeDatabase = new Database<>(addon, SimpleChallenge.class);
+        this.eventChallengeDatabase = new Database<>(addon, EventChallenge.class);
+        this.inventoryChallengeDatabase = new Database<>(addon, InventoryChallenge.class);
+        this.islandChallengeDatabase = new Database<>(addon, IslandChallenge.class);
+
         this.levelDatabase = new Database<>(addon, ChallengeLevel.class);
         this.playersDatabase = new Database<>(addon, ChallengesPlayerData.class);
 
-        this.challengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.simpleChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.eventChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.inventoryChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+        this.islandChallengeDatabase.loadObjects().forEach(this::loadChallenge);
+
         this.levelDatabase.loadObjects().forEach(this::loadLevel);
         // It is not necessary to load all players in memory.
 //        this.playersDatabase.loadObjects().forEach(this::loadPlayerData);
@@ -446,9 +475,21 @@ public class ChallengesManager
         {
             if (!this.challengeCacheData.containsKey(uniqueID))
             {
-                if (this.challengeDatabase.objectExists(uniqueID))
+                if (this.inventoryChallengeDatabase.objectExists(uniqueID))
                 {
-                    this.loadChallenge(this.challengeDatabase.loadObject(uniqueID));
+                    this.loadChallenge(this.inventoryChallengeDatabase.loadObject(uniqueID));
+                }
+                else if (this.islandChallengeDatabase.objectExists(uniqueID))
+                {
+                    this.loadChallenge(this.islandChallengeDatabase.loadObject(uniqueID));
+                }
+                else if (this.eventChallengeDatabase.objectExists(uniqueID))
+                {
+                    this.loadChallenge(this.eventChallengeDatabase.loadObject(uniqueID));
+                }
+                else if (this.simpleChallengeDatabase.objectExists(uniqueID))
+                {
+                    this.loadChallenge(this.simpleChallengeDatabase.loadObject(uniqueID));
                 }
                 else
                 {
@@ -537,9 +578,18 @@ public class ChallengesManager
      */
     private void wipeChallenges()
     {
-        List<Challenge> challengeList = this.challengeDatabase.loadObjects();
+        List<? extends Challenge> challengeList = this.simpleChallengeDatabase.loadObjects();
+        challengeList.forEach(challenge -> this.simpleChallengeDatabase.deleteID(challenge.getUniqueId()));
 
-        challengeList.forEach(challenge -> this.challengeDatabase.deleteID(challenge.getUniqueId()));
+        challengeList = this.eventChallengeDatabase.loadObjects();
+        challengeList.forEach(challenge -> this.eventChallengeDatabase.deleteID(challenge.getUniqueId()));
+
+        challengeList = this.islandChallengeDatabase.loadObjects();
+        challengeList.forEach(challenge -> this.islandChallengeDatabase.deleteID(challenge.getUniqueId()));
+
+        challengeList = this.inventoryChallengeDatabase.loadObjects();
+        challengeList.forEach(challenge -> this.inventoryChallengeDatabase.deleteID(challenge.getUniqueId()));
+
         this.challengeCacheData.clear();
     }
 
@@ -578,7 +628,7 @@ public class ChallengesManager
      */
     private void saveChallenges()
     {
-        this.challengeCacheData.values().forEach(this.challengeDatabase::saveObject);
+        this.challengeCacheData.values().forEach(this::saveChallenge);
     }
 
 
@@ -588,7 +638,22 @@ public class ChallengesManager
      */
     public void saveChallenge(Challenge challenge)
     {
-        this.challengeDatabase.saveObject(challenge);
+        switch (challenge.getChallengeType())
+        {
+            case INVENTORY:
+                this.inventoryChallengeDatabase.saveObject((InventoryChallenge) challenge);
+                break;
+            case ISLAND:
+                this.islandChallengeDatabase.saveObject((IslandChallenge) challenge);
+                break;
+            case EVENT:
+                this.eventChallengeDatabase.saveObject((EventChallenge) challenge);
+                break;
+            case OTHER:
+            case SIMPLE:
+                this.simpleChallengeDatabase.saveObject((SimpleChallenge) challenge);
+                break;
+        }
     }
 
 
@@ -1336,10 +1401,51 @@ public class ChallengesManager
         }
         else
         {
-            // check database.
-            if (this.challengeDatabase.objectExists(name))
+            if (this.inventoryChallengeDatabase.objectExists(name))
             {
-                Challenge challenge = this.challengeDatabase.loadObject(name);
+                Challenge challenge = this.inventoryChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return challenge;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.islandChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.islandChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return challenge;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.eventChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.eventChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return challenge;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.simpleChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.simpleChallengeDatabase.loadObject(name);
 
                 if (challenge != null)
                 {
@@ -1372,9 +1478,51 @@ public class ChallengesManager
         else
         {
             // check database.
-            if (this.challengeDatabase.objectExists(name))
+            if (this.inventoryChallengeDatabase.objectExists(name))
             {
-                Challenge challenge = this.challengeDatabase.loadObject(name);
+                Challenge challenge = this.inventoryChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return true;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.islandChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.islandChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return true;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.eventChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.eventChallengeDatabase.loadObject(name);
+
+                if (challenge != null)
+                {
+                    this.challengeCacheData.put(name, challenge);
+                    return true;
+                }
+                else
+                {
+                    this.addon.logError("Tried to load NULL challenge object!");
+                }
+            }
+            else if (this.simpleChallengeDatabase.objectExists(name))
+            {
+                Challenge challenge = this.simpleChallengeDatabase.loadObject(name);
 
                 if (challenge != null)
                 {
@@ -1397,11 +1545,28 @@ public class ChallengesManager
      * @param uniqueID - new ID for challenge.
      * @return Challenge that is currently created.
      */
-    public Challenge createChallenge(String uniqueID)
+    public Challenge createChallenge(String uniqueID, ChallengeType type)
     {
         if (!this.containsChallenge(uniqueID))
         {
-            Challenge challenge = new Challenge();
+            Challenge challenge;
+            
+            switch (type)
+            {
+                case INVENTORY:
+                    challenge = new InventoryChallenge();
+                    break;
+                case ISLAND:
+                    challenge = new IslandChallenge();
+                    break;
+                case EVENT:
+                    challenge = new EventChallenge();
+                    break;
+                default:
+                    challenge = new SimpleChallenge();
+                    break;
+            }
+                
             challenge.setUniqueId(uniqueID);
 
             this.saveChallenge(challenge);
@@ -1426,7 +1591,23 @@ public class ChallengesManager
         if (this.challengeCacheData.containsKey(challenge.getUniqueId()))
         {
             this.challengeCacheData.remove(challenge.getUniqueId());
-            this.challengeDatabase.deleteObject(challenge);
+
+            switch (challenge.getChallengeType())
+            {
+                case INVENTORY:
+                    this.inventoryChallengeDatabase.deleteObject((InventoryChallenge) challenge);
+                    break;
+                case ISLAND:
+                    this.islandChallengeDatabase.deleteObject((IslandChallenge) challenge);
+                    break;
+                case EVENT:
+                    this.eventChallengeDatabase.deleteObject((EventChallenge) challenge);
+                    break;
+                case OTHER:
+                case SIMPLE:
+                    this.simpleChallengeDatabase.deleteObject((SimpleChallenge) challenge);
+                    break;
+            }
         }
     }
 
@@ -1684,9 +1865,9 @@ public class ChallengesManager
      */
     public boolean hasAnyChallengeData(@NonNull String worldName)
     {
-        return this.challengeDatabase.loadObjects().stream().anyMatch(
+        return this.challengeCacheData.values().stream().anyMatch(
             challenge -> challenge.getUniqueId().startsWith(worldName)) ||
-            this.levelDatabase.loadObjects().stream().anyMatch(
+            this.levelCacheData.values().stream().anyMatch(
                 level -> level.getUniqueId().startsWith(worldName));
     }
 }
